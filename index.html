@@ -1,0 +1,2082 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#0d0d1a">
+<title>🌙 给 lmj</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  html, body {
+    height:100%; width:100%;
+    overflow:hidden;
+    font-family: -apple-system, "PingFang SC", "Helvetica Neue", "Microsoft YaHei", sans-serif;
+    color:#e8e8f0;
+    /* 夜空背景：从上到下深蓝 → 紫 → 近地平线的紫红 */
+    /* 不用 background-attachment: fixed —— 移动 Safari 会把它搞没，导致全黑 */
+    background: linear-gradient(180deg,
+      #050618 0%,
+      #0a0f2e 30%,
+      #131a44 60%,
+      #2a1a4a 85%,
+      #3d1f4a 100%);
+    background-color: #050618;
+    -webkit-text-size-adjust: 100%;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* 地平线柔和辉光 */
+  body::before {
+    content:'';
+    position:fixed; left:0; right:0; bottom:0; height:35vh;
+    z-index:0;
+    background: radial-gradient(ellipse at 50% 100%, rgba(255,107,157,0.25) 0%, rgba(179,136,255,0.1) 40%, transparent 70%);
+    pointer-events:none;
+  }
+
+  /* 远景山峦剪影 */
+  body::after {
+    content:'';
+    position:fixed; left:0; right:0; bottom:0; height:22vh;
+    z-index:0;
+    background:
+      linear-gradient(180deg, transparent 0%, rgba(10,6,20,0.85) 60%, #06040f 100%),
+      radial-gradient(ellipse 40% 100% at 15% 100%, rgba(20,15,45,0.9) 0%, transparent 60%),
+      radial-gradient(ellipse 55% 90% at 75% 100%, rgba(15,10,35,0.95) 0%, transparent 60%);
+    pointer-events:none;
+  }
+
+  /* ============ 星空背景 ============ */
+  #stars {
+    position:fixed; inset:0;
+    z-index:1;
+    pointer-events:none;
+  }
+
+  /* ============ 游走的猫咪剪影 ============ */
+  .cat-float {
+    position:fixed;
+    z-index:1;
+    pointer-events:none;
+    font-size: 42px;
+    opacity: 0.12;
+    filter: blur(0.5px);
+    animation: cat-drift 22s linear infinite;
+    user-select:none;
+  }
+  .cat-float.c1 { top:15%; left:-10%; animation-delay: 0s;   animation-duration: 24s; }
+  .cat-float.c2 { top:40%; left:-15%; animation-delay: -6s;  animation-duration: 28s; font-size:36px; }
+  .cat-float.c3 { top:65%; left:-8%;  animation-delay: -12s; animation-duration: 26s; font-size:48px; }
+  .cat-float.c4 { top:85%; left:-12%; animation-delay: -18s; animation-duration: 30s; font-size:32px; }
+  @keyframes cat-drift {
+    0%   { transform: translateX(0)      scaleX(-1); }
+    96%  { transform: translateX(140vw)  scaleX(-1); }
+    96.1%,100% { transform: translateX(140vw) scaleX(-1); }
+  }
+
+  /* ============ 顶部飘落的猫爪 ============ */
+  .paw-fall {
+    position:fixed;
+    top:-50px;
+    z-index:1;
+    pointer-events:none;
+    font-size: 20px;
+    opacity: 0.15;
+    animation: paw-fall 12s linear infinite;
+    user-select:none;
+  }
+  @keyframes paw-fall {
+    0%   { transform: translateY(0)     rotate(0deg); opacity: 0; }
+    10%  { opacity: 0.18; }
+    100% { transform: translateY(110vh) rotate(360deg); opacity: 0; }
+  }
+
+  /* ============ 包装纸 ============ */
+  #wrapper {
+    position:fixed; inset:0;
+    z-index:100;
+    display:flex;
+    align-items:center; justify-content:center;
+    /* 去掉不透明背景，让后面的星空 + 夜空透出来 */
+    background: transparent;
+    cursor:pointer;
+    transition: opacity 0.9s ease, transform 0.9s ease;
+    text-align:center;
+    padding: 20px;
+  }
+  /* 中央柔和光晕（不遮背景，只是加暖色高光） */
+  #wrapper::before {
+    content:'';
+    position:absolute;
+    top:50%; left:50%;
+    transform:translate(-50%,-50%);
+    width: 70vmin; height: 70vmin;
+    background: radial-gradient(circle, rgba(255,215,180,0.35) 0%, rgba(255,107,157,0.15) 40%, transparent 70%);
+    pointer-events:none;
+    opacity: 0.9;
+  }
+  /* 内部内容容器：flex 列布局，礼物 → 提示 → 副提示，纵向拉开 */
+  #wrapper > .wrapper-inner {
+    position:relative;
+    z-index:2;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    gap: 32px;
+    padding: 40px 20px;
+  }
+  #wrapper .gift-wrap {
+    position:relative;
+    width: 22vmin;
+    height: 22vmin;
+    display:block;
+    filter: drop-shadow(0 0 40px rgba(255,215,180,0.6));
+  }
+  #wrapper .gift-closed,
+  #wrapper .gift-open {
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 22vmin;
+    line-height: 1;
+    transition: opacity 0.5s ease, transform 0.6s cubic-bezier(0.34,1.56,0.64,1);
+  }
+  #wrapper .gift-closed { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+  #wrapper .gift-open   { opacity: 0;   transform: translate(-50%, -50%) scale(0.5); }
+  #wrapper.opened .gift-closed { opacity: 0;   transform: translate(-50%, -50%) scale(1.4); }
+  #wrapper.opened .gift-open   { opacity: 1;   transform: translate(-50%, -50%) scale(1.1); }
+  #wrapper:not(.opened) .gift-wrap { animation: gift-shake 1.8s ease-in-out infinite; transform-origin: center; }
+  @keyframes gift-shake {
+    0%,100% { transform: rotate(-3deg) translateY(0); }
+    25%     { transform: rotate(3deg) translateY(-6px); }
+    50%     { transform: rotate(-2deg) translateY(0); }
+    75%     { transform: rotate(2deg) translateY(-6px); }
+  }
+  #wrapper .hint {
+    font-size: 24px;
+    color: rgba(255,255,255,0.95);
+    letter-spacing: 6px;
+    text-shadow: 0 2px 14px rgba(0,0,0,0.7), 0 0 20px rgba(255,215,180,0.3);
+    animation: pulse-hint 2s ease-in-out infinite;
+  }
+  @keyframes pulse-hint {
+    0%,100% { opacity: 1; transform: scale(1); }
+    50%     { opacity: 0.75; transform: scale(1.05); }
+  }
+  #wrapper .sub-hint {
+    font-size: 15px;
+    color: rgba(255,255,255,0.65);
+    letter-spacing: 3px;
+    text-shadow: 0 2px 10px rgba(0,0,0,0.7);
+  }
+  #wrapper.opened {
+    opacity: 0;
+    transform: scale(1.15);
+    pointer-events: none;
+  }
+
+  /* ============ 主容器 ============ */
+  .content {
+    position:relative;
+    z-index:2;
+    height:100vh; height:100dvh;
+    overflow-y:auto;
+    overflow-x:hidden;
+    padding: 0 20px 100px;
+    opacity:0;
+    transition: opacity 1s ease 0.3s;
+    -webkit-overflow-scrolling: touch;
+    scroll-behavior: smooth;
+  }
+  .content.show { opacity:1; }
+  .content::-webkit-scrollbar { display: none; }
+
+  /* ============ Hero ============ */
+  .hero {
+    min-height: 90vh; min-height: 90dvh;
+    display:flex; flex-direction:column;
+    align-items:center; justify-content:center;
+    text-align:center;
+    padding-top: 40px;
+  }
+  .badge {
+    display:inline-flex; align-items:center; gap:8px;
+    padding: 8px 18px;
+    background: rgba(255,215,200,0.08);
+    border: 1px solid rgba(255,215,200,0.25);
+    border-radius: 30px;
+    color: rgba(255,215,200,0.9);
+    font-size: 13px;
+    letter-spacing: 4px;
+    margin-bottom: 24px;
+    animation: badge-glow 3s ease-in-out infinite;
+  }
+  @keyframes badge-glow {
+    0%,100% { box-shadow: 0 0 10px rgba(255,215,200,0.2); }
+    50%     { box-shadow: 0 0 25px rgba(255,215,200,0.4); }
+  }
+  .main-title {
+    font-size: 64px; font-weight: 800;
+    background: linear-gradient(45deg, #ffd4a3, #ff6b9d, #b388ff);
+    -webkit-background-clip:text; background-clip:text;
+    -webkit-text-fill-color:transparent;
+    line-height: 1.1;
+    letter-spacing: -2px;
+  }
+  .subtitle {
+    margin-top: 16px;
+    font-size: 16px;
+    color: rgba(255,255,255,0.6);
+    letter-spacing: 4px;
+    line-height: 1.8;
+  }
+  .cats-divider {
+    margin-top: 30px;
+    display:flex; gap:14px;
+    font-size: 22px;
+    opacity: 0.7;
+  }
+  .cats-divider span {
+    animation: cat-bounce 2s ease-in-out infinite;
+  }
+  .cats-divider span:nth-child(2) { animation-delay: 0.3s; }
+  .cats-divider span:nth-child(3) { animation-delay: 0.6s; }
+  @keyframes cat-bounce {
+    0%,100% { transform: translateY(0); }
+    50%     { transform: translateY(-6px); }
+  }
+
+  /* ============ 天数卡 ============ */
+  .days-card {
+    text-align:center;
+    background: linear-gradient(135deg, rgba(255,107,157,0.12), rgba(155,102,255,0.12));
+    border: 1px solid rgba(255,255,255,0.1);
+    padding: 30px 22px;
+    border-radius: 20px;
+    margin: 30px auto;
+    max-width: 460px;
+    width: 100%;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+  }
+  .days-label-top {
+    font-size: 13px;
+    color: rgba(255,255,255,0.6);
+    letter-spacing: 3px;
+    margin-bottom: 12px;
+  }
+  .days-number {
+    font-size: 72px;
+    font-weight: 800;
+    background: linear-gradient(45deg, #ffd4a3, #ff6b9d, #b388ff);
+    -webkit-background-clip:text; background-clip:text;
+    -webkit-text-fill-color:transparent;
+    line-height: 1;
+  }
+  .days-label-bot {
+    margin-top: 12px;
+    font-size: 15px;
+    color: rgba(255,255,255,0.7);
+    letter-spacing: 3px;
+  }
+
+  /* ============ 章节标题 ============ */
+  .section-title {
+    text-align:center;
+    margin: 40px 0 24px;
+    position:relative;
+  }
+  .section-title .emoji {
+    font-size: 32px;
+    display:block;
+    margin-bottom: 8px;
+  }
+  .section-title .text {
+    font-size: 22px;
+    font-weight: 700;
+    color: rgba(255,255,255,0.9);
+    letter-spacing: 4px;
+  }
+  .section-title .desc {
+    font-size: 14px;
+    color: rgba(255,255,255,0.6);
+    margin-top: 10px;
+    letter-spacing: 1.5px;
+    line-height: 1.7;
+  }
+  .section-title .desc .key-q {
+    color: #7dd3fc;
+    font-weight: 700;
+  }
+  .section-title .desc .key-egg {
+    display: inline-block;
+    color: #ffd166;
+    font-weight: 700;
+    padding: 1px 8px;
+    border-radius: 10px;
+    background: rgba(255,209,102,0.12);
+    box-shadow: 0 0 12px rgba(255,209,102,0.35);
+    margin: 0 1px;
+  }
+  .section-title::before,
+  .section-title::after {
+    content:'';
+    position:absolute;
+    top: 45%;
+    width: 40px; height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+  }
+  .section-title::before { left: 0; }
+  .section-title::after  { right: 0; }
+
+  /* ============ 时间轴 ============ */
+  .timeline {
+    position:relative;
+    padding-left: 36px;
+    max-width: 520px;
+    margin: 0 auto;
+  }
+  .timeline::before {
+    content:'';
+    position:absolute;
+    left: 14px; top: 8px; bottom: 8px;
+    width: 2px;
+    background: linear-gradient(180deg, #ffd4a3 0%, #ff6b9d 50%, #b388ff 100%);
+    box-shadow: 0 0 12px rgba(255,107,157,0.5);
+  }
+  .time-item {
+    position:relative;
+    margin-bottom: 32px;
+  }
+  .time-item::before {
+    content:'';
+    position:absolute;
+    left: -29px; top: 12px;
+    width: 14px; height: 14px;
+    border-radius:50%;
+    background: radial-gradient(circle, #ffd4a3 0%, #ff6b9d 100%);
+    box-shadow: 0 0 15px rgba(255,107,157,0.8);
+  }
+  .time-card {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 16px;
+    overflow: hidden;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    box-shadow: 0 8px 30px rgba(0,0,0,0.4);
+  }
+  .time-photo {
+    position:relative;
+    width:100%;
+    aspect-ratio: 4/3;
+    background: linear-gradient(135deg, #2a2a4a, #1a1a3a);
+    display:flex; align-items:center; justify-content:center;
+    color: rgba(255,255,255,0.3);
+    font-size: 14px;
+    text-align:center;
+    padding: 20px;
+    letter-spacing: 2px;
+  }
+  .time-photo img {
+    width:100%; height:100%;
+    object-fit: cover;
+    display:block;
+  }
+  .time-photo .placeholder-cat {
+    font-size: 60px;
+    display:block;
+    margin-bottom: 10px;
+    opacity: 0.4;
+  }
+  .time-body {
+    padding: 18px 20px 20px;
+  }
+  .time-date {
+    display:flex; align-items:center; gap:8px;
+    font-size: 13px;
+    color: #ffd4a3;
+    letter-spacing: 2px;
+    margin-bottom: 6px;
+  }
+  .time-date .dot {
+    width: 6px; height: 6px;
+    border-radius:50%;
+    background: #ffd4a3;
+  }
+  .time-title {
+    font-size: 20px;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 8px;
+    letter-spacing: 1px;
+  }
+  .time-desc {
+    font-size: 14px;
+    line-height: 1.7;
+    color: rgba(255,255,255,0.7);
+    margin-bottom: 16px;
+  }
+
+  /* ============ 按年卡片（year-item） ============ */
+  .year-item {
+    --year-color: #fff;
+  }
+  .year-item::before {
+    background: radial-gradient(circle, var(--year-color) 0%, var(--year-color) 60%, rgba(255,255,255,0.1) 100%);
+    box-shadow: 0 0 18px var(--year-color), 0 0 36px var(--year-color);
+  }
+  .year-item .time-card {
+    border-top: 2px solid var(--year-color);
+    background: linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02));
+  }
+  .year-hero {
+    position: relative;
+    padding: 28px 20px 22px;
+    background: linear-gradient(135deg, rgba(255,255,255,0.06), rgba(255,255,255,0));
+    text-align: center;
+    border-bottom: 1px dashed rgba(255,255,255,0.12);
+    overflow: hidden;
+  }
+  .year-hero::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse at top, var(--year-color) 0%, transparent 50%);
+    opacity: 0.15;
+    pointer-events: none;
+  }
+  .year-big {
+    position: relative;
+    font-size: 56px;
+    font-weight: 800;
+    line-height: 1;
+    letter-spacing: 4px;
+    background: linear-gradient(135deg, var(--year-color) 0%, #fff 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    filter: drop-shadow(0 0 20px var(--year-color));
+  }
+  .year-emoji-big {
+    position: relative;
+    font-size: 44px;
+    margin-top: 6px;
+    filter: drop-shadow(0 0 12px var(--year-color));
+  }
+  .year-anniv {
+    position: relative;
+    margin-top: 10px;
+    display: inline-block;
+    padding: 3px 12px;
+    border-radius: 12px;
+    background: rgba(255,255,255,0.08);
+    color: var(--year-color);
+    font-size: 12px;
+    letter-spacing: 2px;
+    border: 1px solid rgba(255,255,255,0.15);
+  }
+  /* 展开按钮（玻璃拟态：半透明 + 模糊背景 + 渐变边框） */
+  .year-toggle {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 11px 26px;
+    border-radius: 999px;
+    margin: 20px auto 0;
+    background: rgba(255,255,255,0.08);
+    color: #fff;
+    font-size: 14px;
+    letter-spacing: 2px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.3s ease, transform 0.2s ease, box-shadow 0.3s ease;
+    user-select: none;
+    border: none;
+    backdrop-filter: blur(12px) saturate(150%);
+    -webkit-backdrop-filter: blur(12px) saturate(150%);
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,0.15),
+      inset 0 -1px 0 rgba(0,0,0,0.1),
+      0 4px 20px rgba(0,0,0,0.2);
+    display: block;
+    width: fit-content;
+  }
+  /* 渐变边框（用伪元素 + mask 挖空中间，只留 1.5px 边框） */
+  .year-toggle::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    padding: 1.5px;
+    border-radius: 999px;
+    background: linear-gradient(135deg,
+      var(--year-color) 0%,
+      rgba(255,255,255,0.6) 50%,
+      var(--year-color) 100%);
+    -webkit-mask:
+      linear-gradient(#000 0 0) content-box,
+      linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+            mask-composite: exclude;
+    pointer-events: none;
+  }
+  /* 高光反射（顶部一道柔光） */
+  .year-toggle::after {
+    content: '';
+    position: absolute;
+    inset: 1px 10% auto 10%;
+    height: 40%;
+    background: linear-gradient(180deg, rgba(255,255,255,0.18), transparent);
+    border-radius: 999px 999px 60% 60% / 999px 999px 30% 30%;
+    pointer-events: none;
+  }
+  .year-toggle:hover, .year-toggle:active {
+    background: rgba(255,255,255,0.14);
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,0.22),
+      inset 0 -1px 0 rgba(0,0,0,0.1),
+      0 6px 24px rgba(0,0,0,0.28);
+  }
+  .year-toggle:active {
+    transform: scale(0.96);
+  }
+  .year-item.expanded .year-toggle {
+    background: rgba(255,255,255,0.12);
+    color: var(--year-color);
+  }
+  .year-toggle .chevron {
+    display: inline-block;
+    transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    font-size: 12px;
+    color: var(--year-color);
+    font-weight: 700;
+    position: relative;
+    z-index: 1;
+  }
+  .year-item.expanded .year-toggle .chevron {
+    transform: rotate(180deg);
+  }
+  .year-toggle > * {
+    position: relative;
+    z-index: 1;
+  }
+  /* 月份面板 */
+  .months-panel {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .months-inner {
+    min-height: 0;
+  }
+  .months-list {
+    padding: 8px 0 4px;
+  }
+  /* 月份项：默认隐藏（不可见），展开后淡入上移 */
+  .month-item {
+    opacity: 0;
+    transform: translateY(12px);
+    transition: opacity 0.35s ease, transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+  .year-item.expanded .month-item {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  /* 每项依次延迟进入，形成波浪效果 */
+  .year-item.expanded .month-item:nth-child(1) { transition-delay: 0.05s; }
+  .year-item.expanded .month-item:nth-child(2) { transition-delay: 0.15s; }
+  .year-item.expanded .month-item:nth-child(3) { transition-delay: 0.25s; }
+  .year-item.expanded .month-item:nth-child(4) { transition-delay: 0.35s; }
+  .year-item.expanded .month-item:nth-child(n+5) { transition-delay: 0.45s; }
+  /* 故事块（2019 年用：一整段回忆，不是月份卡片） */
+  .year-story {
+    background: rgba(0,0,0,0.25);
+    border-left: 3px solid var(--year-color);
+    border-radius: 12px;
+    padding: 18px 20px;
+    margin: 6px 4px 4px;
+  }
+  .year-story p {
+    font-size: 14px;
+    color: rgba(255,255,255,0.85);
+    line-height: 1.85;
+    margin: 0 0 10px;
+  }
+  .year-story p:last-child {
+    margin-bottom: 0;
+  }
+  .year-story p.aside {
+    color: rgba(255,255,255,0.45);
+    font-size: 13px;
+    font-style: italic;
+  }
+  .year-story p.ending {
+    color: var(--year-color);
+    font-weight: 600;
+    margin-top: 12px;
+  }
+  /* 单个月份卡片 */
+  .month-item {
+    background: rgba(0,0,0,0.25);
+    border-left: 3px solid var(--year-color);
+    border-radius: 10px;
+    padding: 12px 14px;
+    margin: 10px 4px;
+  }
+  .month-date {
+    font-size: 12px;
+    color: var(--year-color);
+    letter-spacing: 1.5px;
+    font-weight: 600;
+    margin-bottom: 4px;
+  }
+  .month-title {
+    font-size: 15px;
+    color: #fff;
+    font-weight: 600;
+    margin-bottom: 6px;
+  }
+  .month-desc {
+    font-size: 13px;
+    color: rgba(255,255,255,0.7);
+    line-height: 1.6;
+    margin-bottom: 8px;
+  }
+  /* 月份里的照片/视频 */
+  .month-media {
+    width: 100%;
+    border-radius: 8px;
+    overflow: hidden;
+    margin-bottom: 8px;
+    background: #000;
+  }
+  .month-media img, .month-media video {
+    width: 100%;
+    display: block;
+    border-radius: 8px;
+  }
+  /* 空状态提示 */
+  .months-empty {
+    text-align: center;
+    padding: 16px 8px;
+    color: rgba(255,255,255,0.3);
+    font-size: 12px;
+    letter-spacing: 1.5px;
+  }
+  .months-empty::before {
+    content: '⋯';
+    display: block;
+    font-size: 20px;
+    margin-bottom: 4px;
+    opacity: 0.5;
+  }
+
+  /* 问题区 */
+  .quiz {
+    background: rgba(0,0,0,0.25);
+    border-radius: 12px;
+    padding: 14px 16px;
+    border: 1px solid rgba(255,215,200,0.15);
+  }
+  .quiz-q {
+    font-size: 14px;
+    color: rgba(255,215,200,0.95);
+    margin-bottom: 12px;
+    line-height: 1.6;
+    display:flex; gap:6px;
+  }
+  .quiz-q .icon {
+    flex-shrink:0;
+    animation: blink 1.5s infinite;
+  }
+  @keyframes blink {
+    0%,100% { opacity: 1; }
+    50%     { opacity: 0.5; }
+  }
+  .quiz-options {
+    display:flex; flex-direction:column;
+    gap: 8px;
+  }
+  .quiz-opt {
+    padding: 12px 14px;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 10px;
+    color: rgba(255,255,255,0.85);
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.25s;
+    text-align: center;
+    letter-spacing: 1px;
+  }
+  .quiz-opt:hover { background: rgba(255,255,255,0.1); }
+  .quiz-opt.correct {
+    background: linear-gradient(135deg, rgba(80,220,160,0.25), rgba(80,220,160,0.15));
+    border-color: rgba(80,220,160,0.6);
+    color: #a8f0c8;
+  }
+  .quiz-opt.wrong {
+    background: rgba(255,107,107,0.15);
+    border-color: rgba(255,107,107,0.5);
+    color: rgba(255,180,180,0.9);
+    opacity: 0.6;
+    animation: shake 0.4s;
+  }
+  @keyframes shake {
+    0%,100% { transform: translateX(0); }
+    25%     { transform: translateX(-5px); }
+    75%     { transform: translateX(5px); }
+  }
+  /* 答题结果区 */
+  .quiz-feedback {
+    padding: 0 4px;
+    min-height: 0;
+    transition: min-height 0.4s ease;
+  }
+  .quiz-feedback:empty {
+    display: none;
+  }
+  .quiz-result {
+    background: rgba(0,0,0,0.35);
+    border-radius: 14px;
+    padding: 18px 16px;
+    text-align: center;
+    margin: 8px 4px 4px;
+    animation: fadeIn 0.4s ease;
+    border: 1px solid rgba(255,255,255,0.08);
+  }
+  .quiz-cat-upset {
+    font-size: 56px;
+    line-height: 1;
+    animation: upsetFloat 1.8s ease;
+    display: inline-block;
+    filter: drop-shadow(0 0 12px rgba(255,100,100,0.5));
+  }
+  .quiz-message {
+    color: rgba(255,255,255,0.92);
+    font-size: 14px;
+    line-height: 1.8;
+    margin-top: 12px;
+  }
+  @keyframes upsetFloat {
+    0% { opacity: 0; transform: translateY(30px) scale(0.6); }
+    15% { opacity: 1; transform: translateY(0) scale(1.15); }
+    75% { opacity: 1; transform: translateY(0) scale(1); }
+    100% { opacity: 0; transform: translateY(-20px) scale(0.85); }
+  }
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .quiz-input {
+    width:100%;
+    padding: 12px 14px;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.15);
+    border-radius: 10px;
+    color: white;
+    font-size: 14px;
+    outline: none;
+    letter-spacing: 1px;
+  }
+  .quiz-input:focus {
+    border-color: #ffd4a3;
+    box-shadow: 0 0 12px rgba(255,212,163,0.3);
+  }
+  .quiz-input-btn {
+    margin-top: 10px;
+    width: 100%;
+    padding: 10px;
+    background: linear-gradient(135deg, #ffd4a3, #ff6b9d);
+    border: none;
+    border-radius: 10px;
+    color: #1a1a2e;
+    font-weight: 700;
+    font-size: 14px;
+    cursor: pointer;
+    letter-spacing: 2px;
+  }
+
+  /* ============================================================
+     题目卡（横向手风琴：标题栏在左，内容纵向堆叠在下方）
+     折叠时 body 完全隐藏（max-height:0 + overflow:hidden），
+     展开时 body 撑到自然高度
+     ============================================================ */
+  .quiz-block {
+    background: rgba(0,0,0,0.28);
+    border: 1px solid rgba(255,215,200,0.16);
+    border-radius: 12px;
+    padding: 10px 12px;
+    margin-bottom: 8px;
+    overflow: hidden;
+    transition: border-color .3s, background .3s, box-shadow .3s;
+  }
+  .quiz-block.expanded {
+    border-color: rgba(255,180,150,0.4);
+    background: rgba(0,0,0,0.4);
+    box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+  }
+  /* header 是横向小栏：emoji + Q 号 + 箭头 */
+  .quiz-header {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 10px;
+    padding: 4px 2px;
+    cursor: pointer;
+    line-height: 1;
+  }
+  .quiz-title-emoji {
+    font-size: 22px;
+    line-height: 1;
+    align-self: center;
+  }
+  .quiz-title-num {
+    font-size: 15px;
+    font-weight: 800;
+    color: rgba(255,215,200,0.95);
+    letter-spacing: 1px;
+    line-height: 1;
+    align-self: center;
+  }
+  .quiz-expand-arrow {
+    margin-left: auto;
+    font-size: 16px;
+    color: rgba(255,255,255,0.55);
+    transition: transform .3s ease, color .3s;
+    display: inline-block;
+    align-self: center;
+    line-height: 1;
+  }
+  .quiz-block.expanded .quiz-expand-arrow {
+    transform: rotate(90deg);
+    color: rgba(255,215,200,0.9);
+  }
+  /* body：折叠时 max-height:0 + overflow:hidden 彻底切掉 */
+  .quiz-body {
+    max-height: 0;
+    opacity: 0;
+    overflow: hidden;
+    margin-top: 0;
+    padding-left: 0;
+    padding-right: 0;
+    transition: max-height .5s cubic-bezier(0.4,0,0.2,1),
+                opacity .3s ease,
+                margin .3s ease;
+  }
+  .quiz-block.expanded .quiz-body {
+    max-height: 1200px;
+    opacity: 1;
+    margin-top: 10px;
+  }
+  .quiz-image {
+    overflow: hidden;
+    border-radius: 10px;
+    background: #000;
+    margin-bottom: 10px;
+  }
+  .quiz-image img {
+    width: 100%;
+    max-height: 380px;
+    object-fit: contain;
+    background: #000;
+    display: block;
+  }
+  .quiz-question {
+    font-size: 14px;
+    color: rgba(255,215,200,0.95);
+    line-height: 1.7;
+    margin-bottom: 12px;
+    padding: 6px 0;
+  }
+  /* 反馈区 */
+  .quiz-feedback {
+    margin-top: 6px;
+    padding: 0 2px;
+  }
+  .quiz-feedback:empty { display: none; }
+  .quiz-result {
+    background: rgba(255,255,255,0.05);
+    border-radius: 12px;
+    padding: 14px 12px;
+    text-align: center;
+    border: 1px solid rgba(255,255,255,0.08);
+    animation: fadeIn .4s ease;
+  }
+  .quiz-cat-upset {
+    font-size: 46px;
+    line-height: 1;
+    display: inline-block;
+    animation: upsetFloat 1.8s ease;
+    filter: drop-shadow(0 0 12px rgba(255,100,100,0.5));
+  }
+  .quiz-block.correct .quiz-cat-upset {
+    filter: drop-shadow(0 0 12px rgba(120,230,170,0.6));
+  }
+  .quiz-message {
+    color: rgba(255,255,255,0.92);
+    font-size: 13px;
+    line-height: 1.75;
+    margin-top: 10px;
+    text-align: left;
+    padding: 0 4px;
+  }
+  .quiz-close-btn {
+    margin-top: 12px;
+    padding: 9px 18px;
+    background: linear-gradient(135deg, rgba(80,220,160,0.28), rgba(255,180,150,0.28));
+    border: 1px solid rgba(255,255,255,0.25);
+    border-radius: 999px;
+    color: #fff;
+    font-size: 12px;
+    cursor: pointer;
+    letter-spacing: 2px;
+    transition: transform .2s, filter .2s;
+    font-weight: 600;
+  }
+  .quiz-close-btn:hover { transform: scale(1.03); filter: brightness(1.15); }
+
+  /* 彩蛋 */
+  .easter-egg {
+    margin-top: 14px;
+    padding: 16px;
+    background: linear-gradient(135deg, rgba(255,215,200,0.15), rgba(179,136,255,0.12));
+    border-radius: 12px;
+    border: 1px solid rgba(255,215,200,0.4);
+    text-align:center;
+    opacity: 0;
+    transform: scale(0.9);
+    transition: all 0.6s cubic-bezier(0.34,1.56,0.64,1);
+    max-height: 0;
+    padding-top: 0;
+    padding-bottom: 0;
+    overflow: hidden;
+    margin-top: 0;
+  }
+  .easter-egg.reveal {
+    opacity: 1;
+    transform: scale(1);
+    max-height: 400px;
+    padding: 16px;
+    margin-top: 14px;
+  }
+  .egg-cat {
+    font-size: 36px;
+    display:block;
+    margin-bottom: 8px;
+    animation: egg-cat-bounce 1s ease infinite alternate;
+  }
+  @keyframes egg-cat-bounce {
+    from { transform: translateY(0) rotate(-5deg); }
+    to   { transform: translateY(-8px) rotate(5deg); }
+  }
+  .egg-text {
+    font-size: 14px;
+    line-height: 1.8;
+    color: #ffd4a3;
+    letter-spacing: 1px;
+    font-style: italic;
+  }
+
+  .quiz-msg {
+    margin-top: 10px;
+    font-size: 12px;
+    color: rgba(255,180,180,0.9);
+    text-align:center;
+    letter-spacing: 1px;
+    min-height: 18px;
+  }
+
+  /* ============ 长信解锁 ============ */
+  .letter-card {
+    background: linear-gradient(135deg, rgba(255,215,200,0.08), rgba(179,136,255,0.08));
+    border: 1px solid rgba(255,215,200,0.3);
+    border-radius: 20px;
+    padding: 30px 24px;
+    text-align:center;
+    max-width: 460px;
+    margin: 30px auto;
+    box-shadow: 0 0 40px rgba(255,215,200,0.1);
+  }
+  .letter-icon {
+    font-size: 48px;
+    margin-bottom: 12px;
+  }
+  .letter-title {
+    font-size: 20px;
+    font-weight: 700;
+    color: #ffd4a3;
+    margin-bottom: 8px;
+    letter-spacing: 2px;
+  }
+  .letter-hint {
+    font-size: 13px;
+    color: rgba(255,255,255,0.6);
+    margin-bottom: 18px;
+    letter-spacing: 2px;
+  }
+  .letter-input-wrap {
+    display:flex;
+    gap: 10px;
+    margin-bottom: 12px;
+  }
+  .letter-input {
+    flex: 1;
+    padding: 14px 18px;
+    background: rgba(0,0,0,0.35);
+    border: 1px solid rgba(255,215,200,0.35);
+    border-radius: 30px;
+    color: #ffd4a3;
+    font-size: 18px;
+    text-align:center;
+    letter-spacing: 6px;
+    outline: none;
+    font-weight: 700;
+  }
+  .letter-input:focus {
+    border-color: #ffd4a3;
+    box-shadow: 0 0 20px rgba(255,212,163,0.4);
+  }
+  .letter-btn {
+    padding: 14px 24px;
+    background: linear-gradient(135deg, #ffd4a3, #ff6b9d);
+    border: none;
+    border-radius: 30px;
+    color: #1a1a2e;
+    font-weight: 700;
+    cursor: pointer;
+    font-size: 15px;
+    letter-spacing: 2px;
+    box-shadow: 0 4px 15px rgba(255,107,157,0.4);
+  }
+  .letter-btn:active { transform: scale(0.95); }
+  .letter-msg {
+    font-size: 13px;
+    min-height: 20px;
+    letter-spacing: 1px;
+  }
+
+  /* 长信内容（默认隐藏） */
+  .letter-content {
+    max-height: 0;
+    overflow: hidden;
+    opacity: 0;
+    transition: all 1s ease;
+    text-align: left;
+    margin-top: 20px;
+    padding: 0 8px;
+  }
+  .letter-content.reveal {
+    max-height: 5000px;
+    opacity: 1;
+    padding: 8px;
+  }
+  .letter-line {
+    font-family: "LXGW WenKai", "LXGW WenKai Screen", "Kaiti SC", "STKaiti", "KaiTi", "楷体", Georgia, serif;
+    font-size: 17px;
+    line-height: 2;
+    color: rgba(255,255,255,0.9);
+    margin-bottom: 14px;
+    letter-spacing: 0.5px;
+  }
+  .letter-line strong {
+    font-weight: 700;
+    color: #ffd4a3;
+    text-shadow: 0 0 12px rgba(255,180,100,0.3);
+    letter-spacing: 0.8px;
+  }
+  .letter-signature {
+    text-align: right;
+    margin-top: 32px;
+    font-family: "LXGW WenKai", "Kaiti SC", "STKaiti", "KaiTi", "楷体", Georgia, serif;
+    font-size: 18px;
+    color: #ffd4a3;
+    font-style: italic;
+    font-weight: 600;
+    letter-spacing: 1px;
+  }
+
+  /* ============ 底部按钮 ============ */
+  .bottom-bar {
+    position:fixed;
+    bottom: 0; left: 0; right: 0;
+    z-index: 50;
+    display:flex;
+    justify-content:center;
+    gap: 14px;
+    padding: 14px 20px;
+    padding-bottom: calc(14px + env(safe-area-inset-bottom));
+    background: linear-gradient(transparent, rgba(13,13,26,0.95));
+  }
+  .icon-btn {
+    width: 54px; height: 54px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.18);
+    backdrop-filter: blur(10px);
+    color: white;
+    font-size: 22px;
+    display:flex; align-items:center; justify-content:center;
+    cursor:pointer;
+    transition: all 0.3s;
+    text-decoration: none;
+  }
+  .icon-btn:active { transform: scale(0.9); }
+  .icon-btn.active {
+    background: linear-gradient(135deg, #ffd4a3, #ff6b9d);
+    border-color: transparent;
+    color: #1a1a2e;
+    box-shadow: 0 4px 15px rgba(255,107,157,0.5);
+  }
+
+  /* ============ 签名 ============ */
+  .signoff {
+    text-align:center;
+    padding: 60px 20px 30px;
+    color: rgba(255,255,255,0.5);
+    font-size: 13px;
+    letter-spacing: 3px;
+    line-height: 2;
+  }
+  .signoff .cats {
+    font-size: 20px;
+    display: inline-block;
+    animation: cat-heart 1.5s ease-in-out infinite;
+  }
+  @keyframes cat-heart {
+    0%,100% { transform: scale(1); }
+    15%     { transform: scale(1.25); }
+    30%     { transform: scale(1); }
+  }
+
+  /* 预留位（音乐功能已移除，保留 display:none 以防外部引用） */
+  .music-tip { display: none; }
+</style>
+</head>
+<body>
+
+<!-- 背景 -->
+<canvas id="stars"></canvas>
+
+<!-- 游走的猫咪 -->
+<div class="cat-float c1">🐱</div>
+<div class="cat-float c2">😺</div>
+<div class="cat-float c3">🐈</div>
+<div class="cat-float c4">😸</div>
+
+<!-- 飘落的猫爪 -->
+<div class="paw-fall" style="left: 10%; animation-delay: 0s;">🐾</div>
+<div class="paw-fall" style="left: 30%; animation-delay: -3s;">🐾</div>
+<div class="paw-fall" style="left: 55%; animation-delay: -6s;">🐾</div>
+<div class="paw-fall" style="left: 75%; animation-delay: -9s;">🐾</div>
+<div class="paw-fall" style="left: 90%; animation-delay: -12s;">🐾</div>
+
+<!-- 包装纸 -->
+<div id="wrapper">
+  <div class="wrapper-inner">
+    <div class="gift-wrap">
+      <span class="gift-closed">🎁</span>
+      <span class="gift-open">🎂</span>
+    </div>
+    <div class="hint">轻触打开</div>
+    <div class="sub-hint">一份来自小六的礼物</div>
+  </div>
+</div>
+
+<!-- 主内容 -->
+<div class="content" id="content">
+
+  <!-- Hero -->
+  <div class="hero">
+    <div class="badge">🌟 FOR LMJ 🌟</div>
+    <h1 class="main-title">生日快乐</h1>
+    <p class="subtitle">姐，下滑开启你的礼物吧！！！</p>
+    <div class="cats-divider">
+      <span>🐱</span><span>🐈</span><span>😺</span>
+    </div>
+  </div>
+
+  <!-- 天数卡 -->
+  <div class="days-card">
+    <div class="days-label-top">🕐 时光纪念</div>
+    <div class="days-number" id="days">0</div>
+    <div class="days-label-bot">我们在一起的日子</div>
+  </div>
+
+  <!-- 时间轴标题 -->
+  <div class="section-title">
+    <span class="emoji">📸</span>
+    <div class="text">我们的时间轴</div>
+    <div class="desc">每一张照片背后都有一个<span class="key-q">小问题</span> · 答对就有<span class="key-egg">彩蛋</span>哦</div>
+  </div>
+
+  <!-- 时间轴（按年版本，你后续在每年下插更细的月/日卡片） -->
+  <div class="timeline">
+
+    <!-- 2019 · 起点 -->
+    <div class="time-item year-item" style="--year-color: #4ade80;">
+      <div class="time-card">
+        <div class="year-hero">
+          <div class="year-big">2019</div>
+          <div class="year-emoji-big">🌱</div>
+          <div class="year-anniv">初识之年</div>
+          <button class="year-toggle" data-toggle="months-2019">展开这一年 <span class="chevron">▾</span></button>
+        </div>
+        <div class="time-body">
+          <div class="time-title">故事的开始</div>
+          <div class="time-desc">那一年，咱俩认识了。<br>一切都是从这里开始的。</div>
+        </div>
+        <div class="months-panel" id="months-2019">
+          <div class="months-inner">
+            <div class="months-list">
+              <div class="year-story">
+                <p>当时初一，我记得我一开始就坐在姐的后面，和姐好像也没什么特别的交流。</p>
+                <p class="aside">（当然我真的已经忘了很多当时 19 年的事情了）</p>
+                <p>我只记得我第一个加的人，就是从那个格致的年级群加的人就是姐你嘿嘿。</p>
+                <p>我要是没有记错的话，当时我还是一个超级无敌 i 人，做什么都畏畏缩缩的。</p>
+                <p>我记不太清楚了，应该是初一上半学期吧，有一个竞选大队委的演讲我讲的真是特别差劲来着，现在想一下我当时真是呆死了。</p>
+                <p class="ending">我 19 年和姐你有关的大概也只能回忆起来这么多啦，往下看吧！！！</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 2020 · 1 周年 -->
+    <div class="time-item year-item" style="--year-color: #fbbf24;">
+      <div class="time-card">
+        <div class="year-hero">
+          <div class="year-big">2020</div>
+          <div class="year-emoji-big">🌻</div>
+          <div class="year-anniv">1 周年</div>
+          <button class="year-toggle" data-toggle="months-2020">展开这一年 <span class="chevron">▾</span></button>
+        </div>
+        <div class="time-body">
+          <div class="time-title">欢乐的序章</div>
+          <div class="time-desc">这一年，我们的接触开始变多了。</div>
+        </div>
+        <div class="months-panel" id="months-2020">
+          <div class="months-inner">
+            <div class="months-list">
+              <div class="year-story">
+                <p>20 年上半年的话就是疫情嘛，我们那年的寒假特别长，感觉上了没几个月又放暑假了，所以我对初一确实是没有那么多印象了。</p>
+                <p>初二上半学期我记得我就开始了我英语课代表反复横跳的艰苦历程。</p>
+                <p>当时初一结束我记得我们对静云还有点意见来着，感觉她初一那时候有点刁难人，不过后来到了初二大家好像也都能接受了。我听说是初一她家里面有点什么变故具体就说不清楚了。</p>
+                <p>不过也是多亏了静云让我和姐交流变多了许多，首先就是当了英语课代表嘛，我记得当时是你、方田书、我和吴my吧；其次嘛就是当时静云搞的那个师徒制度，哈哈哈，我可是叫了你好长一段时间师父呢姐。</p>
+                <p>再后来的话，就是我们几个的传奇经历的开始啦，没记错我们应该是寒假的时候把群建起来的，接下来就是我们的开篇了姐。</p>
+                <p class="ending">继续往下看吧！下面我就会开始加上一些小题目来考考你的记忆力咯姐</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 2021 · 2 周年 -->
+    <div class="time-item year-item" style="--year-color: #f472b6;">
+      <div class="time-card">
+        <div class="year-hero">
+          <div class="year-big">2021</div>
+          <div class="year-emoji-big">🌸</div>
+          <div class="year-anniv">2 周年</div>
+          <button class="year-toggle" data-toggle="months-2021">展开这一年 <span class="chevron">▾</span></button>
+        </div>
+        <div class="time-body">
+          <div class="time-title">花开那年</div>
+          <div class="time-desc">第二年，咱俩越来越熟了。<br>不用刻意找话题，也能聊到一块儿去。</div>
+        </div>
+        <div class="months-panel" id="months-2021">
+          <div class="months-inner">
+            <div class="months-list">
+              <div class="quiz-block" id="quiz-2021" data-next-target="quiz-2021-q2" data-correct-message="对啦！姐，还记得我们第一次出去玩吗，就是在南禅寺，那个迷宫，后来我们又去了好多好多次南禅寺吧 🌸">
+                <div class="quiz-header">
+                  <div class="quiz-title-emoji">🤔</div>
+                  <div class="quiz-title-num">Q1</div>
+                  <span class="quiz-expand-arrow">▸</span>
+                </div>
+                <div class="quiz-body">
+                  <div class="quiz-image">
+                    <img src="assets/photos/2021-guess-place.jpg" alt="2021年第一次组团出去玩">
+                  </div>
+                  <div class="quiz-question">猜猜我们第一次组团出去玩是在哪？🤔</div>
+                  <div class="quiz-options">
+                    <button class="quiz-opt" data-answer="false">A. 南长街</button>
+                    <button class="quiz-opt" data-answer="true">B. 南禅寺</button>
+                    <button class="quiz-opt" data-answer="false">C. 三阳广场</button>
+                  </div>
+                  <div class="quiz-feedback" id="quiz-feedback-2021"></div>
+                </div>
+              </div>
+              <div class="quiz-block" id="quiz-2021-q2" data-next-target="quiz-2021-q3" data-correct-message="我看到这张照片已经回想起来了格致的夜晚了，而且这绝对是我吃过最好吃的一顿龙虾！！！ 🦞">
+                <div class="quiz-header">
+                  <div class="quiz-title-emoji">🦞</div>
+                  <div class="quiz-title-num">Q2</div>
+                  <span class="quiz-expand-arrow">▸</span>
+                </div>
+                <div class="quiz-body">
+                  <div class="quiz-image">
+                    <img src="assets/photos/2021-lobster.jpg" alt="2021年那盘龙虾">
+                  </div>
+                  <div class="quiz-question">还记得这盘龙虾在哪里吃的吗？🦞</div>
+                  <div class="quiz-options">
+                    <button class="quiz-opt" data-answer="false">A. 初三四班</button>
+                    <button class="quiz-opt" data-answer="false">B. 初二四班</button>
+                    <button class="quiz-opt" data-answer="true">C. 初一四班</button>
+                  </div>
+                  <div class="quiz-feedback" id="quiz-feedback-2021-q2"></div>
+                </div>
+              </div>
+              <div class="quiz-block" id="quiz-2021-q3" data-correct-message="英语课上咱整的一个小剧场，还在 fab 家底下那个小公园里面排练来着 🎭" data-show-epilogue="epilogue-2021">
+                <div class="quiz-header">
+                  <div class="quiz-title-emoji">🏠</div>
+                  <div class="quiz-title-num">Q3</div>
+                  <span class="quiz-expand-arrow">▸</span>
+                </div>
+                <div class="quiz-body">
+                  <div class="quiz-image">
+                    <img src="assets/photos/2021-under-apartment.jpg" alt="2021年某人家楼下">
+                  </div>
+                  <div class="quiz-question">我们这是在谁家楼下？🏠</div>
+                  <div class="quiz-options">
+                    <button class="quiz-opt" data-answer="true">A. fab</button>
+                    <button class="quiz-opt" data-answer="false">B. zjj</button>
+                    <button class="quiz-opt" data-answer="false">C. hc</button>
+                  </div>
+                  <div class="quiz-feedback" id="quiz-feedback-2021-q3"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ⭐ 尾声（Q3 收起后显示） -->
+    <div class="epilogue-block" id="epilogue-2021" style="display:none; margin: 30px 0; padding: 20px; background: rgba(255,255,255,0.04); border-radius: 16px; border: 1px solid rgba(255,215,150,0.15);">
+      <div style="text-align: center; font-size: 28px; margin-bottom: 16px;">🎂✨🎂</div>
+      <div style="text-align: center; border-radius: 12px; overflow: hidden; margin-bottom: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.3);">
+        <img src="assets/photos/2021-birthday-cake.jpg" alt="2021年一起过的第一个生日" style="width: 100%; max-height: 400px; object-fit: contain; background: #000; display: block;">
+      </div>
+      <div style="font-size: 15px; line-height: 1.9; color: rgba(255,230,200,0.95); text-align: center; padding: 0 8px;">
+        <p style="margin: 0 0 12px 0;">这是咱们一起过生日的开始 🎂</p>
+        <p style="margin: 0 0 12px 0;">下面五年的内容实在是太多啦姐，原谅我只能在这么仓促的时间里面做一份半成品出来。</p>
+        <p style="margin: 0 0 12px 0;">不过，一个网页也塞不下我们后来的五年。</p>
+        <p style="margin: 0 0 12px 0;">后面我会专门做一个大的回忆录的，希望到我们老了之后，无论你在哪里，都能点开这份回忆录。</p>
+        <p style="margin: 0 0 12px 0;">我也相信这个回忆录不止五年，也不止十年。</p>
+        <p style="margin: 0 0 12px 0; color: rgba(255,215,150,0.8);">敬请期待吧姐，还有各位！！！🌟</p>
+        <p style="margin: 0 0 12px 0; font-style: italic; color: rgba(255,180,200,0.7);">最后一段信就只能姐一个人看哦~~</p>
+        <p style="margin: 0 0 12px 0; font-weight: 600; color: rgba(255,220,150,0.95); font-size: 16px;">信在最后哦！往下翻就能找到~</p>
+      </div>
+    </div>
+
+    <!-- 2022 · 3 周年 -->
+    <div class="time-item year-item" style="--year-color: #a78bfa;">
+      <div class="time-card">
+        <div class="year-hero">
+          <div class="year-big">2022</div>
+          <div class="year-emoji-big">✨</div>
+          <div class="year-anniv">3 周年</div>
+          <button class="year-toggle" data-toggle="months-2022" data-static-label="true">📖 未完待续<span class="chevron"></span></button>
+        </div>
+        <div class="time-body">
+          <div class="time-title">闪闪发光</div>
+          <div class="time-desc">三年了。<br>每一天，都觉得值得。</div>
+        </div>
+        <div class="months-panel" id="months-2022">
+          <div class="months-inner">
+            <div class="months-list">
+              <div class="month-item">
+                <div class="month-date">2022 · 1 月</div>
+                <div class="month-title">🎆 新年</div>
+                <div class="month-media"><img src="assets/photos/2022-01.jpg" alt="2022年1月"></div>
+                <div class="month-desc">待你填——写一句这年 1 月的回忆。</div>
+              </div>
+              <div class="month-item">
+                <div class="month-date">2022 · 6 月</div>
+                <div class="month-title">🎂 你生日</div>
+                <div class="month-media"><img src="assets/photos/2022-06.jpg" alt="2022年6月"></div>
+                <div class="month-desc">待你填——这年生日的样子。</div>
+              </div>
+              <div class="month-item">
+                <div class="month-date">2022 · 12 月</div>
+                <div class="month-title">🎄 跨年</div>
+                <div class="month-media"><img src="assets/photos/2022-12.jpg" alt="2022年12月"></div>
+                <div class="month-desc">待你填——写一句这年跨年的回忆。</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 2023 · 4 周年 -->
+    <div class="time-item year-item" style="--year-color: #60a5fa;">
+      <div class="time-card">
+        <div class="year-hero">
+          <div class="year-big">2023</div>
+          <div class="year-emoji-big">🌙</div>
+          <div class="year-anniv">4 周年</div>
+          <button class="year-toggle" data-toggle="months-2023" data-static-label="true">📖 未完待续<span class="chevron"></span></button>
+        </div>
+        <div class="time-body">
+          <div class="time-title">🌙 月色里的我们</div>
+          <div class="time-desc">第四年。<br>咱俩一起看过好多月亮。</div>
+        </div>
+        <div class="months-panel" id="months-2023">
+          <div class="months-inner">
+            <div class="months-list">
+              <div class="month-item">
+                <div class="month-date">2023 · 1 月</div>
+                <div class="month-title">🎆 新年</div>
+                <div class="month-media"><img src="assets/photos/2023-01.jpg" alt="2023年1月"></div>
+                <div class="month-desc">待你填——写一句这年 1 月的回忆。</div>
+              </div>
+              <div class="month-item">
+                <div class="month-date">2023 · 6 月</div>
+                <div class="month-title">🎂 你生日</div>
+                <div class="month-media"><img src="assets/photos/2023-06.jpg" alt="2023年6月"></div>
+                <div class="month-desc">待你填——这年生日的样子。</div>
+              </div>
+              <div class="month-item">
+                <div class="month-date">2023 · 12 月</div>
+                <div class="month-title">🎄 跨年</div>
+                <div class="month-media"><img src="assets/photos/2023-12.jpg" alt="2023年12月"></div>
+                <div class="month-desc">待你填——写一句这年跨年的回忆。</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 2024 · 5 周年 -->
+    <div class="time-item year-item" style="--year-color: #fb923c;">
+      <div class="time-card">
+        <div class="year-hero">
+          <div class="year-big">2024</div>
+          <div class="year-emoji-big">🎊</div>
+          <div class="year-anniv">5 周年</div>
+          <button class="year-toggle" data-toggle="months-2024" data-static-label="true">📖 未完待续<span class="chevron"></span></button>
+        </div>
+        <div class="time-body">
+          <div class="time-title">🎊 五周年快乐</div>
+          <div class="time-desc">五年。<br>是一个小小的里程碑，也是一个新的开始。</div>
+        </div>
+        <div class="months-panel" id="months-2024">
+          <div class="months-inner">
+            <div class="months-list">
+              <div class="month-item">
+                <div class="month-date">2024 · 1 月</div>
+                <div class="month-title">🎆 新年</div>
+                <div class="month-media"><img src="assets/photos/2024-01.jpg" alt="2024年1月"></div>
+                <div class="month-desc">待你填——写一句这年 1 月的回忆。</div>
+              </div>
+              <div class="month-item">
+                <div class="month-date">2024 · 6 月</div>
+                <div class="month-title">🎂 你生日</div>
+                <div class="month-media"><img src="assets/photos/2024-06.jpg" alt="2024年6月"></div>
+                <div class="month-desc">待你填——这年生日的样子。</div>
+              </div>
+              <div class="month-item">
+                <div class="month-date">2024 · 12 月</div>
+                <div class="month-title">🎄 跨年</div>
+                <div class="month-media"><img src="assets/photos/2024-12.jpg" alt="2024年12月"></div>
+                <div class="month-desc">待你填——写一句这年跨年的回忆。</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 2025 · 6 周年 -->
+    <div class="time-item year-item" style="--year-color: #f472b6;">
+      <div class="time-card">
+        <div class="year-hero">
+          <div class="year-big">2025</div>
+          <div class="year-emoji-big">🎂</div>
+          <div class="year-anniv">6 周年</div>
+          <button class="year-toggle" data-toggle="months-2025" data-static-label="true">📖 未完待续<span class="chevron"></span></button>
+        </div>
+        <div class="time-body">
+          <div class="time-title">🎂 六周年蛋糕</div>
+          <div class="time-desc">六年。<br>一起切了好多蛋糕。</div>
+        </div>
+        <div class="months-panel" id="months-2025">
+          <div class="months-inner">
+            <div class="months-list">
+              <div class="month-item">
+                <div class="month-date">2025 · 1 月</div>
+                <div class="month-title">🎆 新年</div>
+                <div class="month-media"><img src="assets/photos/2025-01.jpg" alt="2025年1月"></div>
+                <div class="month-desc">待你填——写一句这年 1 月的回忆。</div>
+              </div>
+              <div class="month-item">
+                <div class="month-date">2025 · 6 月</div>
+                <div class="month-title">🎂 你生日</div>
+                <div class="month-media"><img src="assets/photos/2025-06.jpg" alt="2025年6月"></div>
+                <div class="month-desc">待你填——这年生日的样子。</div>
+              </div>
+              <div class="month-item">
+                <div class="month-date">2025 · 12 月</div>
+                <div class="month-title">🎄 跨年</div>
+                <div class="month-media"><img src="assets/photos/2025-12.jpg" alt="2025年12月"></div>
+                <div class="month-desc">待你填——写一句这年跨年的回忆。</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 2026 · 7 周年 -->
+    <div class="time-item year-item" style="--year-color: #facc15;">
+      <div class="time-card">
+        <div class="year-hero">
+          <div class="year-big">2026</div>
+          <div class="year-emoji-big">🌟</div>
+          <div class="year-anniv">7 周年</div>
+          <button class="year-toggle" data-toggle="months-2026" data-static-label="true">📖 未完待续<span class="chevron"></span></button>
+        </div>
+        <div class="time-body">
+          <div class="time-title">🌟 七年快乐</div>
+          <div class="time-desc">第七年。<br>还有很多年，可以一起慢慢走。</div>
+        </div>
+        <div class="months-panel" id="months-2026">
+          <div class="months-inner">
+            <div class="months-list">
+              <div class="month-item">
+                <div class="month-date">2026 · 1 月</div>
+                <div class="month-title">🎆 新年</div>
+                <div class="month-media"><img src="assets/photos/2026-01.jpg" alt="2026年1月"></div>
+                <div class="month-desc">待你填——写一句这年 1 月的回忆。</div>
+              </div>
+              <div class="month-item">
+                <div class="month-date">2026 · 6 月</div>
+                <div class="month-title">🎂 你生日</div>
+                <div class="month-media"><img src="assets/photos/2026-06.jpg" alt="2026年6月"></div>
+                <div class="month-desc">待你填——这年生日的样子。</div>
+              </div>
+              <div class="month-item">
+                <div class="month-date">2026 · 10 月</div>
+                <div class="month-title">🌟 今天</div>
+                <div class="month-media"><img src="assets/photos/2026-10.jpg" alt="2026年10月"></div>
+                <div class="month-desc">待你填——今天这天的样子。</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ⬇️ 后续每年下插更细的月/日卡片：复制一个 <div class="time-item">...</div> 到某个年份节点后面即可 -->
+
+  </div>
+
+  <!-- 长信 -->
+  <div class="section-title">
+    <span class="emoji">💌</span>
+    <div class="text">一封藏在星星里的信</div>
+    <div class="desc">输入你的生日（MMDD 格式）解锁</div>
+  </div>
+
+  <div class="letter-card">
+    <div class="letter-icon">🔐</div>
+    <div class="letter-title">这封信只属于你</div>
+    <div class="letter-hint">输入你的生日，比如 0315</div>
+    <div class="letter-input-wrap">
+      <input type="text" class="letter-input" id="letterInput" maxlength="4" placeholder="MMDD" inputmode="numeric">
+      <button class="letter-btn" id="letterBtn">解锁</button>
+    </div>
+    <div class="letter-msg" id="letterMsg"></div>
+    <div class="letter-content" id="letterContent">
+      <p class="letter-line"><strong>姐，祝你生日快乐喔！</strong></p>
+      <p class="letter-line">无论是学习还是生活，我都希望姐可以顺利，平安，开心，有趣地过好每一天的生活。</p>
+      <p class="letter-line">姐真的很强，无论是学习还是生活，还有人际交往，但是我也希望姐可以给自己多一些放松吐槽的时间和机会，得空就可以和我说，无论是好心情还是坏消息我一定兜住了！</p>
+      <p class="letter-line">祝福呢就到此结束啦！接下来是我真正想送给你的生日礼物！</p>
+      <p class="letter-line">姐，我其实一直都非常非常感谢你，这个是真的，我也不会撒谎，有的时候我特别怕有些事情和家里人说了之后会让他们担心，但是我可以特别放心特别特别放心地和你说。</p>
+      <p class="letter-line">然后还有高中那时候图书馆，如果没有姐和我一起呆着，我也完全不敢想我现在是否可以做到今天这个地步，知道这么多东西，真的可以说没有姐，就没有现在的我，这么说可能对其他对我好的人特别不公平但是这是真的！</p>
+      <p class="letter-line">就像几年前，你给我写的生日祝福里面一样，我们的友谊，完全不需要证明，我们的存在就是最好的证明！</p>
+      <p class="letter-line">姐，我现在已经真的已经变成了一个勇敢的人，我真的奔走在一条我热爱的路上，一条甚至和你说的一模一样的开满鲜花的路上，我不再是那个初一的时候站在台上还战战兢兢的人，我也能勇敢的对你说出这么多感激的话，我也不再是那么不起眼。</p>
+      <p class="letter-line"><strong>今年我最最最想要送给你的，就是这些感谢，也是我能想到的最好的生日礼物了，姐，你实实在在地改变了我的人生喔！</strong></p>
+      <p class="letter-signature">—— 小六</p>
+    </div>
+  </div>
+
+  <div class="signoff">
+    🌙 用星星和一只猫做的礼物 🌙<br>
+    <span class="cats">🐱🌻🐈</span>
+  </div>
+
+</div>
+
+<!-- 底部按钮 -->
+<div class="bottom-bar">
+  <button class="icon-btn" id="topBtn" title="回到顶部">⤴</button>
+</div>
+
+<script>
+/* ============================================================
+   CONFIG —— 你改这几个参数
+   ============================================================ */
+const CONFIG = {
+  // ⏰ 起始日期：改成你俩第一次见面的日期
+  startDate: '2019-11-01',
+
+  // 🔑 长信解锁密码（她的生日 MMDD）
+  letterPassword: '1021',
+};
+
+/* ============================================================
+   包装纸拆开
+   ============================================================ */
+const wrapper = document.getElementById('wrapper');
+const content = document.getElementById('content');
+wrapper.addEventListener('click', function() {
+  if (this.classList.contains('opened')) return;
+  this.classList.add('opened');
+  content.classList.add('show');
+  setTimeout(() => this.remove(), 1000);
+});
+
+/* ============================================================
+   星空 + 流星拖尾
+   ============================================================ */
+const canvas = document.getElementById('stars');
+const ctx = canvas.getContext('2d');
+let stars = [];
+let shootingStars = [];
+let lastShootTime = 0;
+
+function resize() {
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+  stars = Array(70).fill().map(() => ({
+    x: Math.random() * canvas.width,
+    y: Math.random() * canvas.height,
+    r: Math.random() * 1.4 + 0.3,
+    s: Math.random() * 0.25 + 0.08,
+    twinkle: Math.random() * Math.PI * 2,
+    twinkleSpeed: Math.random() * 0.04 + 0.02,
+    /* 星点自己的下移拖尾 */
+    trail: []
+  }));
+}
+resize();
+window.addEventListener('resize', resize);
+
+function spawnShootingStar() {
+  /* 从左上方往右下方划过，带长拖尾 */
+  shootingStars.push({
+    x: Math.random() * canvas.width * 0.5,
+    y: Math.random() * canvas.height * 0.3,
+    vx: 6 + Math.random() * 4,
+    vy: 3 + Math.random() * 2,
+    life: 1,
+    decay: 0.008 + Math.random() * 0.005,
+    trail: [],
+    len: 25 + Math.floor(Math.random() * 20)
+  });
+}
+
+(function draw() {
+  /* 每帧清空 canvas，让 body 的夜空 gradient 透过来 */
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  /* 静态闪烁星 */
+  for (const s of stars) {
+    s.twinkle += s.twinkleSpeed;
+    const alpha = 0.35 + Math.sin(s.twinkle) * 0.45;
+    ctx.fillStyle = `rgba(255,255,255,${alpha})`;
+    ctx.beginPath();
+    ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+    ctx.fill();
+
+    /* 拖尾：从早到晚，透明度递增 */
+    for (let i = 0; i < s.trail.length; i++) {
+      const t = s.trail[i];
+      const ta = (i / s.trail.length) * alpha * 0.35;
+      ctx.fillStyle = `rgba(255,255,255,${ta})`;
+      ctx.beginPath();
+      ctx.arc(t.x, t.y, s.r * (0.5 + i * 0.06), 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    /* 记录位置形成拖尾 */
+    s.trail.push({ x: s.x, y: s.y });
+    if (s.trail.length > 8) s.trail.shift();
+
+    s.y += s.s;
+    if (s.y > canvas.height) { s.y = -2; s.x = Math.random() * canvas.width; s.trail = []; }
+  }
+
+  /* 流星（每 2-4 秒一颗） */
+  const now = performance.now();
+  if (now - lastShootTime > 2000 + Math.random() * 2500) {
+    spawnShootingStar();
+    lastShootTime = now;
+  }
+  for (let i = shootingStars.length - 1; i >= 0; i--) {
+    const ss = shootingStars[i];
+    ss.trail.push({ x: ss.x, y: ss.y });
+    if (ss.trail.length > ss.len) ss.trail.shift();
+
+    /* 拖尾从尾到头，头部最亮最粗 */
+    for (let j = 0; j < ss.trail.length; j++) {
+      const p = ss.trail[j];
+      const t = j / ss.trail.length;
+      const alpha = t * t * ss.life * 0.9;
+      const r = t * 2.5 + 0.4;
+      ctx.fillStyle = `rgba(255,240,200,${alpha})`;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, r, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    ss.x += ss.vx;
+    ss.y += ss.vy;
+    ss.life -= ss.decay;
+    if (ss.life <= 0 || ss.x > canvas.width + 50 || ss.y > canvas.height + 50) {
+      shootingStars.splice(i, 1);
+    }
+  }
+
+  requestAnimationFrame(draw);
+})();
+
+/* ============================================================
+   天数
+   ============================================================ */
+function updateDays() {
+  const start = new Date(CONFIG.startDate);
+  const now = new Date();
+  const diff = Math.floor((now - start) / 86400000);
+  const step = Math.max(1, Math.floor(diff / 60));
+  ['days', 'days2'].forEach(id => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    let cur = 0;
+    const timer = setInterval(() => {
+      cur += step;
+      if (cur >= diff) { cur = diff; clearInterval(timer); }
+      el.textContent = cur.toLocaleString();
+    }, 30);
+  });
+}
+
+/* ============================================================
+   时间轴答题
+   ============================================================ */
+document.querySelectorAll('.quiz').forEach(quiz => {
+  const type = quiz.dataset.type;
+  const correct = quiz.dataset.correct;
+  const msg = quiz.querySelector('.quiz-msg');
+
+  if (type === 'select') {
+    // 单选题
+    quiz.querySelectorAll('.quiz-opt').forEach(opt => {
+      opt.addEventListener('click', () => {
+        if (opt.classList.contains('correct')) return;
+        if (opt.dataset.i === correct) {
+          opt.classList.add('correct');
+          // 禁用其他选项
+          quiz.querySelectorAll('.quiz-opt').forEach(o => {
+            o.style.pointerEvents = 'none';
+          });
+          // 显示彩蛋
+          const egg = quiz.nextElementSibling;
+          if (egg && egg.classList.contains('easter-egg')) {
+            setTimeout(() => egg.classList.add('reveal'), 300);
+          }
+          msg.style.color = '#a8f0c8';
+          msg.textContent = '🎉 答对啦！';
+          burstPaws();
+        } else {
+          opt.classList.add('wrong');
+          setTimeout(() => opt.classList.remove('wrong'), 500);
+          msg.style.color = 'rgba(255,180,180,0.9)';
+          msg.textContent = '再想想哦～';
+        }
+      });
+    });
+  } else if (type === 'input') {
+    // 填空题
+    const input = quiz.querySelector('.quiz-input');
+    const btn = quiz.querySelector('.quiz-input-btn');
+    const tryAnswer = () => {
+      const val = input.value.trim();
+      if (!val) return;
+      if (val === correct) {
+        input.style.borderColor = '#a8f0c8';
+        input.style.boxShadow = '0 0 12px rgba(168,240,200,0.4)';
+        btn.disabled = true;
+        btn.textContent = '✓';
+        const egg = quiz.nextElementSibling;
+        if (egg && egg.classList.contains('easter-egg')) {
+          setTimeout(() => egg.classList.add('reveal'), 300);
+        }
+        msg.style.color = '#a8f0c8';
+        msg.textContent = '🎉 答对啦！';
+        burstPaws();
+      } else {
+        msg.style.color = 'rgba(255,180,180,0.9)';
+        msg.textContent = '嗯...再想想～';
+        input.value = '';
+      }
+    };
+    btn.addEventListener('click', tryAnswer);
+    input.addEventListener('keydown', e => {
+      if (e.key === 'Enter') tryAnswer();
+    });
+  }
+});
+
+/* ============================================================
+   长信解锁
+   ============================================================ */
+const letterInput = document.getElementById('letterInput');
+const letterBtn = document.getElementById('letterBtn');
+const letterMsg = document.getElementById('letterMsg');
+const letterContent = document.getElementById('letterContent');
+
+letterInput.addEventListener('input', e => {
+  e.target.value = e.target.value.replace(/\D/g, '').slice(0, 4);
+});
+
+letterBtn.addEventListener('click', () => {
+  const val = letterInput.value.trim();
+  if (val.length !== 4) {
+    letterMsg.style.color = '#ffd4a3';
+    letterMsg.textContent = '请输入 4 位数字哦';
+    return;
+  }
+  if (val === CONFIG.letterPassword) {
+    letterMsg.style.color = '#ffd4a3';
+    letterMsg.textContent = '🔓 解锁成功 · 慢点读，别漏掉一句话';
+    letterContent.classList.add('reveal');
+    letterBtn.textContent = '🎉';
+    letterBtn.disabled = true;
+    // 撒一波猫爪
+    burstPaws();
+    // 滚到长信内容位置
+    setTimeout(() => {
+      letterContent.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 800);
+  } else {
+    letterMsg.style.color = 'rgba(255,180,180,0.9)';
+    letterMsg.textContent = '嗯...不是你的生日哦～';
+    letterInput.value = '';
+    letterInput.focus();
+  }
+});
+
+letterInput.addEventListener('keydown', e => {
+  if (e.key === 'Enter') letterBtn.click();
+});
+
+/* ============================================================
+   撒猫爪
+   ============================================================ */
+function burstPaws() {
+  const emojis = ['🐾', '🐱', '😺', '🐈', '😸', '✨', '⭐'];
+  for (let i = 0; i < 40; i++) {
+    const el = document.createElement('div');
+    el.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+    el.style.cssText = `
+      position:fixed;
+      left:${Math.random() * 100}%;
+      top:-50px;
+      font-size:${Math.random() * 20 + 16}px;
+      z-index:200;
+      pointer-events:none;
+      transition: all ${Math.random() * 2 + 2}s ease-out;
+      opacity: 1;
+    `;
+    document.body.appendChild(el);
+    requestAnimationFrame(() => {
+      el.style.top = `${Math.random() * 100 + 50}%`;
+      el.style.left = `${Math.random() * 100}%`;
+      el.style.opacity = '0';
+    });
+    setTimeout(() => el.remove(), 4500);
+  }
+}
+
+/* ============================================================
+   2021 看图猜地点 quiz（横向手风琴：标题栏在左，点开后内容横向撑开）
+   结构：<quiz-block> [header(标题+箭头)] + [body(图/题/选项/反馈)]
+   展开触发：整个 .quiz-header 可点击；答对后反馈区含"收起本题"按钮
+   ============================================================ */
+document.querySelectorAll('.quiz-block').forEach(block => {
+  const header = block.querySelector('.quiz-header');
+  const feedback = block.querySelector('.quiz-feedback');
+
+  // 展开/收起（点标题栏触发）
+  if (header) {
+    header.addEventListener('click', (e) => {
+      // 若点的是反馈里的按钮，不重复触发
+      if (e.target && e.target.closest && e.target.closest('.quiz-feedback')) return;
+      const bodyEl = block.querySelector('.quiz-body');
+      // 展开时先把 body 的 inline display:none 清掉（答对收起按钮会设成 none，这里要恢复）
+      if (bodyEl && !block.classList.contains('expanded')) {
+        bodyEl.style.display = '';
+      }
+      block.classList.toggle('expanded');
+    });
+  }
+
+  // 答题
+  block.querySelectorAll('.quiz-opt').forEach(opt => {
+    opt.addEventListener('click', (e) => {
+      e.stopPropagation(); // 防止冒泡到 header
+      if (opt.classList.contains('correct') || opt.classList.contains('wrong')) return;
+      const isCorrect = opt.dataset.answer === 'true';
+      // 阻止重复点
+      block.querySelectorAll('.quiz-opt').forEach(o => {
+        o.style.pointerEvents = 'none';
+      });
+      if (isCorrect) {
+        opt.classList.add('correct');
+        block.classList.add('correct');
+        if (feedback) {
+          // 故事文案从 block 的 data-correct-message 读，没写就默认一句
+          const correctMsg = block.getAttribute('data-correct-message') || '对啦！答对啦 🎉';
+          feedback.innerHTML =
+            '<div class="quiz-result">' +
+              '<div class="quiz-cat-upset">🎉🐱</div>' +
+              '<p class="quiz-message">' + correctMsg + '</p>' +
+              '<button class="quiz-close-btn" data-close-quiz="' + block.id + '">收起本题 ✓</button>' +
+            '</div>';
+          // 绑关闭按钮：收起本题 + 展开下一题（不移除 feedback 内容，再次展开还能看到答题反馈）
+          const closeBtn = feedback.querySelector('.quiz-close-btn');
+          if (closeBtn) {
+            closeBtn.addEventListener('click', (ev) => {
+              ev.stopPropagation();
+              const bodyEl = block.querySelector('.quiz-body');
+              block.classList.remove('expanded');
+              if (bodyEl) bodyEl.style.display = 'none';
+              // 若本题标记了 data-show-epilogue，收起后显示尾声块
+              const epilogueId = block.getAttribute('data-show-epilogue');
+              if (epilogueId) {
+                const epilogue = document.getElementById(epilogueId);
+                if (epilogue) {
+                  epilogue.style.display = '';
+                  setTimeout(() => {
+                    epilogue.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                  }, 300);
+                }
+                return;
+              }
+              const nextId = block.getAttribute('data-next-target');
+              if (nextId) {
+                const next = document.getElementById(nextId);
+                if (next) {
+                  setTimeout(() => {
+                    next.classList.add('expanded');
+                    const nextBody = next.querySelector('.quiz-body');
+                    if (nextBody) nextBody.style.display = '';
+                    setTimeout(() => {
+                      next.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    }, 100);
+                  }, 300);
+                }
+              }
+            });
+          }
+        }
+        burstPaws();
+      } else {
+        opt.classList.add('wrong');
+        if (feedback) {
+          feedback.innerHTML =
+            '<div class="quiz-result">' +
+              '<div class="quiz-cat-upset">😾</div>' +
+              '<p class="quiz-message">答错啦～再想想哦</p>' +
+            '</div>';
+          setTimeout(() => {
+            opt.classList.remove('wrong');
+            block.querySelectorAll('.quiz-opt').forEach(o => {
+              o.style.pointerEvents = '';
+            });
+          }, 1800);
+        }
+      }
+    });
+  });
+});
+
+/* ============================================================
+   年份卡片展开/收起（JS 动态测高度，避免 max-height 动画生硬）
+   ============================================================ */
+function setPanelHeight(panel, height) {
+  panel.style.maxHeight = height ? height + 'px' : '0px';
+}
+
+document.querySelectorAll('.year-toggle').forEach(btn => {
+  btn.addEventListener('click', () => {
+    // 标记为静态字样的按钮（如"未完待续"），点击不展开
+    if (btn.hasAttribute('data-static-label')) return;
+    const targetId = btn.getAttribute('data-toggle');
+    const target = document.getElementById(targetId);
+    if (!target) return;
+    const panel = target.closest('.year-item');
+    if (!panel) return;
+
+    const isExpanded = panel.classList.contains('expanded');
+    panel.classList.toggle('expanded');
+
+    // 展开：measure 后设 max-height
+    // 收起：设回 0
+    if (isExpanded) {
+      setPanelHeight(target, 0);
+    } else {
+      setPanelHeight(target, target.scrollHeight);
+      // 展开结束后设为 none，让内容能自由撑开（避免窗口 resize 时溢出）
+      target.addEventListener('transitionend', function once() {
+        if (panel.classList.contains('expanded')) {
+          target.style.maxHeight = 'none';
+        }
+        target.removeEventListener('transitionend', once);
+      });
+    }
+
+    // 按钮文字跟着变（如果标记了 data-static-label 就保持原样）
+    if (!btn.hasAttribute('data-static-label')) {
+      const label = btn.childNodes[0];
+      if (label && label.nodeType === 3) {
+        label.nodeValue = isExpanded ? '展开这一年 ' : '收起这一年 ';
+      }
+    }
+  });
+});
+
+/* ============================================================
+   底部按钮
+   ============================================================ */
+document.getElementById('topBtn').addEventListener('click', () => {
+  content.scrollTo({ top: 0, behavior: 'smooth' });
+});
+
+/* ============================================================
+   阻止 iOS 双击缩放
+   ============================================================ */
+let lastTouchEnd = 0;
+document.addEventListener('touchend', e => {
+  const now = Date.now();
+  if (now - lastTouchEnd <= 300) e.preventDefault();
+  lastTouchEnd = now;
+}, { passive: false });
+
+/* ============================================================
+   初始化
+   ============================================================ */
+updateDays();
+</script>
+</body>
+</html>
